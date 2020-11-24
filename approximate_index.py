@@ -66,33 +66,48 @@ def index_maker(n, index_name, history):
         stock['avg_relative_dif'] = avg_relative_dif
 
         #we'll get the stock's average
-        stock['avg'] = statistics.mean([price for date, price in stock['history']])
+        stock['avg_price'] = statistics.mean([price for date, price in stock['history']])
     
     #now we have the data necessary to select the stocks that will best represent the index
     #we will want stocks that perform near the index for avg_relative_dif, and be sure there is a mix of stocks that perform above and below the index on avg
-    stock_difs = [tuple([stock_name, stock_data['avg_relative_dif']]) for stock_name, stock_data in stocks.items()]
+    stock_difs = [{'stock_name': stock_name, 'stock_dif': stock_data['avg_relative_dif'], 'stock_avg':stock_data['avg_price']} for stock_name, stock_data in stocks.items()]
     chosen_stocks = list()
     current_rel = 0
 
-    print(stock_difs)
+    # print(stock_difs)
 
+    #this loop selects n stocks from our stock difs list based on how close they keep the current_rel variable to 0
+    #keeping this variable near 0 tells us that the average change in all the stocks is close to the avg change in the index over time
     while len(chosen_stocks) < n:
         optimal_rel = 0 - current_rel
         best_ind = None
         best_dif = 100000000
 
         for ind,stock in enumerate(stock_difs):
-            stock_opt_rel_dif = abs(optimal_rel - stock[1])
+            stock_opt_rel_dif = abs(optimal_rel - stock['stock_dif'])
             if stock_opt_rel_dif < best_dif:
                 best_dif = stock_opt_rel_dif
                 best_ind = ind 
         best_stock = stock_difs.pop(best_ind)
         chosen_stocks.append(best_stock)
-        current_rel += best_stock[1]
+        current_rel += best_stock['stock_dif']
     
+    # print(chosen_stocks)
+    # print(sum([el['stock_dif'] for el in chosen_stocks]))
+    
+    #we'll want each stock to represent 1/n of the weight of the index's average
+    share_value = index['avg'] / n
+    for stock in chosen_stocks:
+        stock['shares'] = int(share_value / stock['stock_avg'])
     print(chosen_stocks)
 
+    print(sum([stock['shares'] * stocks[stock['stock_name']]['history'][0][1] for stock in chosen_stocks]))
 
 
 
-index_maker(4, '.DJI', 'dow_jones_historical_prices.csv')
+    
+
+
+
+
+index_maker(5, '.DJI', 'dow_jones_historical_prices.csv')
