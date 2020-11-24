@@ -110,4 +110,4 @@ def index_maker(n, index_name, history):
 
 
 
-index_maker(5, '.DJI', 'dow_jones_historical_prices.csv')
+index_maker(8, '.DJI', 'dow_jones_historical_prices.csv')
