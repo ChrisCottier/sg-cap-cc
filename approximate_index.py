@@ -1,18 +1,13 @@
 import csv
 import statistics
-
-#go through stocks see which one follows DJI most closely
-#also keep track of how it over / underperforms on avg
-#choose next stock by how it over or underperforms on avg, to blance out previous stock
-#do this until you have n number of stocks
-#for each we should have avg value, avg value of stock / DJI value, trend vs DJI num, 
-
-#now, to weight the chosen stocks. we'll take into account the avg stock value, its trend vs DJI, and weight vs DJI
+import sys
 
 def index_maker(n, index_name, history):
 
-    #First we'll collect the data into dictionaries. The histories will be stored in lists, because the order of days is important.
+    #First we'll collect the data into dictionaries. The histories will be stored in lists, because the order of days is important for my algorithm implementaion.
+    #Note: I chose the word stock over security as I am more familiar with the term.
     #stocks variable will be a dictionary with sub-dictionaries, corresponding to each stock.
+
     index = dict()
     index['history'] = list()
     stocks= dict()
@@ -37,11 +32,11 @@ def index_maker(n, index_name, history):
 
                 stocks[name]['history'].append(tuple([date,value]))
 
-    #now we have grabbed what we need from the CSV, we will crunch some numbers for each stock in linear O(n) time
+    #now we have grabbed what we need from the CSV, we will crunch some numbers for the index, and each stock, in linear O(n) time
     index['avg'] = statistics.mean([price for date, price in index['history']])
 
-    #this function will give us an array that tells us the relative differences between prices day to day, so if
-    #day 1 to day 2 the DJI increased by 1% we'd see [1.01...]
+    #this function will give us an array that tells us the relative differences between index or stock value day to day, so if
+    #day 1 to day 2 the DJI increased by 1% we'd see [1.01,...]
     def get_difs(arr):
         result = list()
         #we check up until the last date so offset -1
@@ -69,20 +64,21 @@ def index_maker(n, index_name, history):
         stock['avg_price'] = statistics.mean([price for date, price in stock['history']])
     
     #now we have the data necessary to select the stocks that will best represent the index
-    #we will want stocks that perform near the index for avg_relative_dif, and be sure there is a mix of stocks that perform above and below the index on avg
+    #we will want stocks that perform near the index for avg_relative_dif, and be sure there is a mix of stocks that perform above and below the index on average
     stock_difs = [{'stock_name': stock_name, 'stock_dif': stock_data['avg_relative_dif'], 'stock_avg':stock_data['avg_price']} for stock_name, stock_data in stocks.items()]
     chosen_stocks = list()
     current_rel = 0
 
-    # print(stock_difs)
 
     #this loop selects n stocks from our stock difs list based on how close they keep the current_rel variable to 0
+    #each selection of a stock will change current_rel by its deviation from the index 
     #keeping this variable near 0 tells us that the average change in all the stocks is close to the avg change in the index over time
     while len(chosen_stocks) < n:
         optimal_rel = 0 - current_rel
         best_ind = None
         best_dif = 100000000
 
+        #Here we iterate through the stock options, choosing the one that whose relative difference from the index is closest to the optimal rel variable.
         for ind,stock in enumerate(stock_difs):
             stock_opt_rel_dif = abs(optimal_rel - stock['stock_dif'])
             if stock_opt_rel_dif < best_dif:
@@ -92,22 +88,26 @@ def index_maker(n, index_name, history):
         chosen_stocks.append(best_stock)
         current_rel += best_stock['stock_dif']
     
-    # print(chosen_stocks)
-    # print(sum([el['stock_dif'] for el in chosen_stocks]))
     
-    #we'll want each stock to represent 1/n of the weight of the index's average
-    share_value = index['avg'] / n
+    #for my algorithm to work, we'll want each stock to represent 1/n of the value of the index's average, so we'll calculate the weight of that stock accordingly
+    target_stock_value = index['avg'] / n
     for stock in chosen_stocks:
-        stock['shares'] = int(share_value / stock['stock_avg'])
-    print(chosen_stocks)
+        #the shares of each stock will be rounded to 3 decimal places, per the .CHIDOG example in implementation details
+        stock['weight'] = round(target_stock_value / stock['stock_avg'], 3)
 
-    print(sum([stock['shares'] * stocks[stock['stock_name']]['history'][0][1] for stock in chosen_stocks]))
 
+    #we'll print the results, so they may be outputted into a new CSV
+    print('Symbol',',' ,'Weight')
+    for stock in chosen_stocks:
+        print(stock['stock_name'],',', stock['weight'])
+    return
 
 
     
+n = sys.argv[1]
+index_name = sys.argv[2]
+history = sys.argv[3]
 
-
-
-
-index_maker(8, '.DJI', 'dow_jones_historical_prices.csv')
+#this is the function call whenever the python script is invoked. 
+#the arguments for this function are defined above; they are the command line arguments
+index_maker(int(n), index_name, history)
