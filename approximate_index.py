@@ -4,7 +4,7 @@ import sys
 
 def index_maker(n, index_name, history):
 
-    #First we'll collect the data into dictionaries. The histories will be stored in lists, because the order of days is important for my algorithm implementaion.
+    #First we'll collect the data into dictionaries. The histories for the index/stocks will be stored in lists, because the order of days is important for my algorithm implementaion.
     #Note: I chose the word stock over security as I am more familiar with the term.
     #stocks variable will be a dictionary with sub-dictionaries, corresponding to each stock.
 
