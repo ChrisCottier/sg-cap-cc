@@ -20,4 +20,4 @@ My method is primarily focused on finding the securities whose value changes ove
 1. Overall, the algorithm delivers a relatively accurate approximation of the selected index.
 2. The algorithm has good time complexity and performance.
 3. Finding a security's relative performance to the index has implications in other approaches too. The first half of the algorithm could be paired with a different approach for selecting stocks for the approximation.
-4. The algorithm also works for approximating securities too, I believe.
+4. The algorithm also works for approximating securities too.
